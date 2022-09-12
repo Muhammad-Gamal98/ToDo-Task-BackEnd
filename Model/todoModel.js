@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const todoSchema = mongoose.Schema(
+const todoSchema = new mongoose.Schema(
   {
     title: {
       type: String,
@@ -23,6 +23,7 @@ const todoSchema = mongoose.Schema(
     },
     startDate: {
       type: Date,
+      default: Date.now(),
     },
     endDate: {
       type: Date,

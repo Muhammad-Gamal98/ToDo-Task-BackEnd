@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const todoSchema = new mongoose.Schema(
+const taskSchema = new mongoose.Schema(
   {
     title: {
       type: String,
@@ -12,13 +12,20 @@ const todoSchema = new mongoose.Schema(
     priority: {
       type: String,
       required: [true, "priority is required"],
-      enum: ["High", "Medium", "Low"],
+      enum: {
+        values: ["High", "Medium", "Low"],
+        message: "priority must be in High or Medium or Low",
+      },
       default: "Low",
     },
     status: {
       type: String,
       required: [true, "status is required"],
-      enum: ["TODO", "IN progress", "Under Review", "Rework", "Completed"],
+      enum: {
+        values: ["TODO", "IN progress", "Under Review", "Rework", "Completed"],
+        message:
+          "status is must be TODO or IN progress or Under Review or Rework or Completed",
+      },
       default: "TODO",
     },
     startDate: {
@@ -27,6 +34,12 @@ const todoSchema = new mongoose.Schema(
     },
     endDate: {
       type: Date,
+      validate: {
+        validator: function (val) {
+          return val > this.startDate;
+        },
+        message: "End Date Must be above Start Date ",
+      },
     },
   },
   {
@@ -34,5 +47,5 @@ const todoSchema = new mongoose.Schema(
     toObject: { virtuals: true },
   }
 );
-const Todo = mongoose.model("Todo", todoSchema);
-module.exports = Todo;
+const Task = mongoose.model("Task", taskSchema);
+module.exports = Task;

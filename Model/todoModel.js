@@ -34,5 +34,5 @@ const todoSchema = new mongoose.Schema(
     toObject: { virtuals: true },
   }
 );
-const todoModel = mongoose.model("Todo", todoSchema);
-module.exports = todoModel;
+const Todo = mongoose.model("Todo", todoSchema);
+module.exports = Todo;

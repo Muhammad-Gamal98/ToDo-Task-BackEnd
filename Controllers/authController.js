@@ -12,8 +12,16 @@ const tokenSign = (id) => {
     expiresIn: process.env.JWT_EXPIRES_IN,
   });
 };
+
 const sendToken = (user, statusCode, res, sends) => {
   const token = tokenSign(user._id);
+  const cookieOp = {
+    expires: new Date(
+      Date.now() + process.env.COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
+    ),
+    httpOnly: true,
+  };
+  res.cookie("jwt", token, cookieOp);
   user.password = undefined;
   res.status(statusCode).json({ ...sends, token });
 };

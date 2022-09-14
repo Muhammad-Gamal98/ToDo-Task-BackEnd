@@ -25,8 +25,8 @@ class Email {
     await this.transporter().sendMail(mailOptions);
   }
 
-  async sendVerficationEmail(text) {
-    await this.send(`Verfiy your Email`, text);
+  async sendVerificationEmail(text) {
+    await this.send(`Verify your Account`, text);
   }
   async sendPasswordReset(text) {
     await this.send(`Reset your Password`, text);

@@ -1,5 +1,6 @@
-const jwt = require("jsonwebtoken");
 const util = require("util");
+const crypto = require("crypto");
+const jwt = require("jsonwebtoken");
 const { findOne } = require("../Model/userModel");
 const User = require("../Model/userModel");
 const AppError = require("../utils/AppError");
@@ -11,16 +12,40 @@ const tokenSign = (id) => {
     expiresIn: process.env.JWT_EXPIRES_IN,
   });
 };
-const sendToken = (user, statusCode, res) => {
-  const token = tokenSign(user.id);
+const sendToken = (user, statusCode, res, sends) => {
+  const token = tokenSign(user._id);
   user.password = undefined;
-  res.status(statusCode).json({ status: "success", token, data: user });
+  res.status(statusCode).json({ ...sends, token });
 };
 
 const signUp = catchAsync(async (req, res, next) => {
   const user = await User.create(req.body);
-  sendToken(user, 201, res);
+  const verifyToken = user.createVerifyToken();
+  await user.save({ validateBeforeSave: false });
+  const verifyURL = `${req.protocol}://${req.get(
+    "host"
+  )}/api/v1/user/verifyaccount/${user._id}/${verifyToken}`;
+  const message = `Welcome at Todo App, Please verify your account by (get) request to this URL:
+   ${verifyURL}
+   Thank you for Registrion.`;
+  try {
+    await new Email(user).sendVerificationEmail(message);
+    sendToken(user, 201, res, {
+      status: "success",
+      message: "Please verify Your Account via email",
+    });
+  } catch (error) {
+    console.log(error);
+    await User.findByIdAndDelete(user._id);
+    return next(
+      new AppError(
+        "There was an error sending the email verification!. Please try again.",
+        500
+      )
+    );
+  }
 });
+const verifyAccount = catchAsync(async (req, res, next) => {});
 const logIn = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;
   if (!email || !password)
@@ -29,7 +54,7 @@ const logIn = catchAsync(async (req, res, next) => {
 
   if (!user || !(await user.comparePassword(password, user.password)))
     return next(new AppError("Incorect Email or Password", 401));
-  sendToken(user, 200, res);
+  sendToken(user, 200, res, { status: "success", data: user });
 });
 const protect = catchAsync(async (req, res, next) => {
   //1- getting the token and check of it's there
@@ -101,5 +126,29 @@ const forgotPassword = catchAsync(async (req, res, next) => {
     );
   }
 });
-
-module.exports = { signUp, logIn, protect, forgotPassword };
+const resetPassword = catchAsync(async (req, res, next) => {
+  const hashToken = crypto
+    .createHash("sha256")
+    .update(req.params.token)
+    .digest("hex");
+  console.log(hashToken);
+  const user = await User.findOne({
+    passwordResetToken: hashToken,
+    passwordResetTokenExpire: { $gt: Date.now() },
+  });
+  if (!user) return next(new AppError("Token is Invalied or expired", 400));
+  user.password = req.body.newPassword;
+  user.passwordConfirm = req.body.newPasswordConfirm;
+  user.passwordResetToken = undefined;
+  user.passwordResetTokenExpire = undefined;
+  await user.save();
+  sendToken(user, 200, res, { status: "success", data: user });
+});
+module.exports = {
+  signUp,
+  logIn,
+  protect,
+  forgotPassword,
+  resetPassword,
+  verifyAccount,
+};

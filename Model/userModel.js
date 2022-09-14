@@ -14,6 +14,10 @@ const userSchema = new mongoose.Schema({
     required: [true, "email is requierd"],
     validate: [validator.isEmail, "Enter a valid email"],
   },
+  verified: {
+    type: Boolean,
+    default: false,
+  },
   password: {
     type: String,
     required: [true, "Please Enter password"],
@@ -30,6 +34,8 @@ const userSchema = new mongoose.Schema({
     },
   },
   passwordChangedAt: Date,
+  verifyToken: String,
+  verifyTokenExpire: Date,
   passwordResetToken: String,
   passwordResetTokenExpire: Date,
 });
@@ -56,6 +62,12 @@ userSchema.methods.changePassowrdAfterToken = function (jwtTimeStamp) {
     return changeTimeStamp > jwtTimeStamp;
   }
   return false;
+};
+userSchema.methods.createVerifyToken = function () {
+  const token = crypto.randomBytes(32).toString("hex");
+  this.verifyToken = crypto.createHash("sha256").update(token).digest("hex");
+  this.verifyTokenExpire = Date.now() + 30 * 60 * 1000;
+  return token;
 };
 userSchema.methods.createPasswordResetToken = function () {
   const resetToken = crypto.randomBytes(32).toString("hex");

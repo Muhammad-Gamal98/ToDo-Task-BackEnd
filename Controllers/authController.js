@@ -1,7 +1,7 @@
 const util = require("util");
 const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
-const { findOne } = require("../Model/userModel");
+const { findOne, findById } = require("../Model/userModel");
 const User = require("../Model/userModel");
 const AppError = require("../utils/AppError");
 const catchAsync = require("../utils/catchAsync");
@@ -17,7 +17,6 @@ const sendToken = (user, statusCode, res, sends) => {
   user.password = undefined;
   res.status(statusCode).json({ ...sends, token });
 };
-
 const signUp = catchAsync(async (req, res, next) => {
   const user = await User.create(req.body);
   const verifyToken = user.createVerifyToken();
@@ -30,10 +29,14 @@ const signUp = catchAsync(async (req, res, next) => {
    Thank you for Registrion.`;
   try {
     await new Email(user).sendVerificationEmail(message);
-    sendToken(user, 201, res, {
+    res.status(201).json({
       status: "success",
       message: "Please verify Your Account via email",
     });
+    // sendToken(user, 201, res, {
+    //   status: "success",
+    //   message: "Please verify Your Account via email",
+    // });
   } catch (error) {
     console.log(error);
     await User.findByIdAndDelete(user._id);
@@ -45,7 +48,24 @@ const signUp = catchAsync(async (req, res, next) => {
     );
   }
 });
-const verifyAccount = catchAsync(async (req, res, next) => {});
+const verifyAccount = catchAsync(async (req, res, next) => {
+  const hashToken = crypto
+    .createHash("sha256")
+    .update(req.params.token)
+    .digest("hex");
+  console.log(hashToken);
+  const user = await User.findOne({
+    _id: req.params.id,
+    verifyToken: hashToken,
+    verifyTokenExpire: { $gt: Date.now() },
+  });
+  if (!user) return next(new AppError("Token is Invalied or expired", 400));
+  user.verified = true;
+  user.verifyToken = undefined;
+  user.verifyTokenExpire = undefined;
+  await user.save({ validateBeforeSave: false });
+  sendToken(user, 200, res, { status: "success", data: user });
+});
 const logIn = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;
   if (!email || !password)

@@ -10,6 +10,6 @@ router.get("/verifyaccount/:id/:token", authController.verifyAccount);
 router.post("/login", authController.logIn);
 router.post("/forgotpassword", authController.forgotPassword);
 router.post("/forgotpassword", authController.forgotPassword);
-router.patch("/resetpassword/:token", authController.resetPassword);
+router.patch("/resetpassword/:id/:token", authController.resetPassword);
 
 module.exports = router;

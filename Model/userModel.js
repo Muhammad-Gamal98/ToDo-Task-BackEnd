@@ -78,6 +78,12 @@ userSchema.methods.createPasswordResetToken = function () {
   this.passwordResetTokenExpire = Date.now() + 10 * 60 * 1000;
   return resetToken;
 };
-
+userSchema.methods.checkVerifyExpires = function () {
+  if (this.verifyTokenExpire) {
+    verifyStamp = parseInt(+this.verifyTokenExpire, 10);
+    console.log(verifyStamp < Date.now());
+    return Date.now() > verifyStamp;
+  }
+};
 const User = mongoose.model("User", userSchema);
 module.exports = User;

@@ -1,7 +1,6 @@
 const util = require("util");
 const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
-const { findOne, findById } = require("../Model/userModel");
 const User = require("../Model/userModel");
 const AppError = require("../utils/AppError");
 const catchAsync = require("../utils/catchAsync");
@@ -21,6 +20,7 @@ const sendToken = (user, statusCode, res, sends) => {
     ),
     httpOnly: true,
   };
+  if (process.env.NODE_ENV === "production") cookieOp.secure = true;
   res.cookie("jwt", token, cookieOp);
   user.password = undefined;
   res.status(statusCode).json({ ...sends, token });
@@ -61,7 +61,9 @@ const verifyAccount = catchAsync(async (req, res, next) => {
     .createHash("sha256")
     .update(req.params.token)
     .digest("hex");
-  console.log(hashToken);
+  if (!(await User.findById(req.params.id))) {
+    return next(new AppError("This user ID not exist", 400));
+  }
   const user = await User.findOne({
     _id: req.params.id,
     verifyToken: hashToken,
@@ -79,7 +81,37 @@ const logIn = catchAsync(async (req, res, next) => {
   if (!email || !password)
     return next(new AppError("Please Enter Email and Password", 400));
   const user = await User.findOne({ email }).select("+password");
-
+  if (user.verified === false) {
+    if (user.checkVerifyExpires()) {
+      const verifyToken = user.createVerifyToken();
+      await user.save({ validateBeforeSave: false });
+      const verifyURL = `${req.protocol}://${req.get(
+        "host"
+      )}/api/v1/user/verifyaccount/${user._id}/${verifyToken}`;
+      const message = `Welcome at Todo App, Please verify your account by (get) request to this URL:
+      ${verifyURL}
+      Thank you for Registrion.`;
+      try {
+        await new Email(user).sendVerificationEmail(message);
+        return res.status(201).json({
+          status: "success",
+          message:
+            "Resend verification E-maial, Please verify Your Account via email",
+        });
+      } catch (error) {
+        console.log(error);
+        return next(
+          new AppError(
+            "There was an error sending the email verification!. Please try again.",
+            500
+          )
+        );
+      }
+    }
+    return res
+      .status(200)
+      .json({ status: "notVerified", message: "please verify your account" });
+  }
   if (!user || !(await user.comparePassword(password, user.password)))
     return next(new AppError("Incorect Email or Password", 401));
   sendToken(user, 200, res, { status: "success", data: user });
@@ -108,7 +140,10 @@ const protect = catchAsync(async (req, res, next) => {
   const user = await User.findById(decoded.id);
   if (!user)
     return next(
-      AppError("The user belonging to this token does no longer exist.", 401)
+      new AppError(
+        "The user belonging to this token does no longer exist.",
+        401
+      )
     );
   //4-check if user changed password after the token was issued
   if (user.changePassowrdAfterToken(decoded.iat)) {
@@ -133,7 +168,7 @@ const forgotPassword = catchAsync(async (req, res, next) => {
   console.log(resetToken);
   const resetURL = `${req.protocol}://${req.get(
     "host"
-  )}/api/v1/user/resetpassword/${resetToken}`;
+  )}/api/v1/user/resetpassword/${user._id}/${resetToken}`;
   const emailText = `Forgot your password? Submit a PATCH request with your new password and passwordConfirm to: ${resetURL}.
   If you didn't forget your password, please ignore this email!`;
   try {
@@ -161,6 +196,7 @@ const resetPassword = catchAsync(async (req, res, next) => {
     .digest("hex");
   console.log(hashToken);
   const user = await User.findOne({
+    _id: req.params.id,
     passwordResetToken: hashToken,
     passwordResetTokenExpire: { $gt: Date.now() },
   });

@@ -5,13 +5,14 @@ const {
   getTask,
   updateTask,
   deleteTask,
-} = require("../Controllers/todoController");
+  setUserID,
+} = require("../Controllers/taskController");
 const { protect } = require("../Controllers/authController");
 
 const router = express.Router();
 
 router.use(protect);
-router.route("/").get(getAllTasks).post(createTask);
+router.route("/").get(getAllTasks).post(setUserID, createTask);
 router.route("/:id").get(getTask).patch(updateTask).delete(deleteTask);
 
 module.exports = router;

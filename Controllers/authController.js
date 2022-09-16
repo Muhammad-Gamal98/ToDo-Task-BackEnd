@@ -78,6 +78,8 @@ const verifyAccount = catchAsync(async (req, res, next) => {
 });
 const logIn = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;
+  console.log(req.body);
+  console.log(email,password);
   if (!email || !password)
     return next(new AppError("Please Enter Email and Password", 400));
   const user = await User.findOne({ email }).select("+password");
@@ -124,6 +126,8 @@ const protect = catchAsync(async (req, res, next) => {
     req.headers.authorization.startsWith("Bearer")
   ) {
     token = req.headers.authorization.split(" ")[1];
+  }else if(req.cookies.jwt){
+    token = req.cookies.jwt
   }
   if (!token) {
     return next(
@@ -152,6 +156,7 @@ const protect = catchAsync(async (req, res, next) => {
     );
   }
   req.user = user;
+  res.locals.user=user;
   next();
 });
 const forgotPassword = catchAsync(async (req, res, next) => {

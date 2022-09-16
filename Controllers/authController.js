@@ -19,8 +19,10 @@ const sendToken = (user, statusCode, res, sends) => {
       Date.now() + process.env.COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
     ),
     httpOnly: true,
+    secure:false
   };
   if (process.env.NODE_ENV === "production") cookieOp.secure = true;
+  console.log(cookieOp.secure)
   res.cookie("jwt", token, cookieOp);
   user.password = undefined;
   res.status(statusCode).json({ ...sends, token });
@@ -121,6 +123,7 @@ const logIn = catchAsync(async (req, res, next) => {
 const protect = catchAsync(async (req, res, next) => {
   //1- getting the token and check of it's there
   let token;
+  console.log(req.cookies)
   if (
     req.headers.authorization &&
     req.headers.authorization.startsWith("Bearer")

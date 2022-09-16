@@ -1,6 +1,5 @@
 const express = require("express");
-const cookiePsrser = require("cookie-parser");
-const todoRoutes = require("./Routes/taskRoutes");
+const cookieParser = require("cookie-parser")
 const mongoSanitize = require("express-mongo-sanitize");
 const xss = require("xss-clean");
 const cors = require("cors");
@@ -10,18 +9,24 @@ const ErrorHandler = require("./Error/ErrorController");
 
 const app = express();
 app.use(cors());
-// app.options("*", cors());
+app.options("*", cors());
 app.use(express.json());
-app.use(cookiePsrser());
+app.use(cookieParser());
 app.use((req, res, next) => {
-  // console.log(req.headers);
+  console.log('Cookies: ', req.cookies);
   next();
 });
 app.use(mongoSanitize());
 app.use(xss());
-
+console.log(process.env.NODE_ENV)
 app.use("/api/v1/task", taskRoutes);
 app.use("/api/v1/user", userRoutes);
+app.use((req, res, next) => {
+  // console.log(req.headers);
+  console.log('Cookies: ', req.cookies);
+
+  next();
+});
 app.all("*", (req, res, next) => {
   res.status(404).json({
     status: "fail",

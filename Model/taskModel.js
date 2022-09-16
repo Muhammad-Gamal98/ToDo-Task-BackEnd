@@ -47,5 +47,12 @@ const taskSchema = new mongoose.Schema({
     required: [true, "Task must belong to user"],
   },
 });
+taskSchema.pre(/^find/, function (next) {
+  this.populate({
+    path: "user",
+    select: "name email",
+  });
+  next();
+});
 const Task = mongoose.model("Task", taskSchema);
 module.exports = Task;

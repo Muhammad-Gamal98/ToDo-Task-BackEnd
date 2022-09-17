@@ -1,5 +1,5 @@
 const express = require("express");
-const cookieParser = require("cookie-parser")
+const cookieParser = require("cookie-parser");
 const mongoSanitize = require("express-mongo-sanitize");
 const xss = require("xss-clean");
 const cors = require("cors");
@@ -8,22 +8,22 @@ const userRoutes = require("./Routes/userRoutes");
 const ErrorHandler = require("./Error/ErrorController");
 
 const app = express();
-app.use(cors());
-app.options("*", cors());
+app.use(cors({ credentials: true, origin: "http://localhost:3000" }));
+// app.options("http://localhost:3000", cors());
 app.use(express.json());
 app.use(cookieParser());
 app.use((req, res, next) => {
-  console.log('Cookies: ', req.cookies);
+  console.log("Cookies: ", req.cookies);
   next();
 });
 app.use(mongoSanitize());
 app.use(xss());
-console.log(process.env.NODE_ENV)
+console.log(process.env.NODE_ENV);
 app.use("/api/v1/task", taskRoutes);
 app.use("/api/v1/user", userRoutes);
 app.use((req, res, next) => {
   // console.log(req.headers);
-  console.log('Cookies: ', req.cookies);
+  console.log("Cookies: ", req.cookies);
 
   next();
 });

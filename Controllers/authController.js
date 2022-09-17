@@ -18,12 +18,19 @@ const sendToken = (user, statusCode, res, sends) => {
     expires: new Date(
       Date.now() + process.env.COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
     ),
-    httpOnly: true,
-    secure:false
+    httpOnly: false,
+    secure: false,
   };
   if (process.env.NODE_ENV === "production") cookieOp.secure = true;
-  console.log(cookieOp.secure)
+  console.log(token);
+  console.log(cookieOp.secure);
   res.cookie("jwt", token, cookieOp);
+  res.cookie(
+    "jwtExpires",
+    process.env.COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000,
+    cookieOp
+  );
+
   user.password = undefined;
   res.status(statusCode).json({ ...sends, token });
 };
@@ -81,11 +88,12 @@ const verifyAccount = catchAsync(async (req, res, next) => {
 const logIn = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;
   console.log(req.body);
-  console.log(email,password);
+  console.log(email, password);
   if (!email || !password)
     return next(new AppError("Please Enter Email and Password", 400));
   const user = await User.findOne({ email }).select("+password");
-  if (user.verified === false) {
+  // console.log(user);
+  if (user && user.verified === false) {
     if (user.checkVerifyExpires()) {
       const verifyToken = user.createVerifyToken();
       await user.save({ validateBeforeSave: false });
@@ -123,14 +131,14 @@ const logIn = catchAsync(async (req, res, next) => {
 const protect = catchAsync(async (req, res, next) => {
   //1- getting the token and check of it's there
   let token;
-  console.log(req.cookies)
+  console.log(req.cookies);
   if (
     req.headers.authorization &&
     req.headers.authorization.startsWith("Bearer")
   ) {
     token = req.headers.authorization.split(" ")[1];
-  }else if(req.cookies.jwt){
-    token = req.cookies.jwt
+  } else if (req.cookies.jwt) {
+    token = req.cookies.jwt;
   }
   if (!token) {
     return next(
@@ -159,7 +167,7 @@ const protect = catchAsync(async (req, res, next) => {
     );
   }
   req.user = user;
-  res.locals.user=user;
+  res.locals.user = user;
   next();
 });
 const forgotPassword = catchAsync(async (req, res, next) => {

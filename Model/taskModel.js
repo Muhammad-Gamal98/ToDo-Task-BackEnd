@@ -10,23 +10,23 @@ const taskSchema = new mongoose.Schema({
     type: String,
   },
   priority: {
-    type: String,
+    type: Number,
     required: [true, "priority is required"],
     enum: {
-      values: ["High", "Medium", "Low"],
-      message: "priority must be in High or Medium or Low",
+      values: [1, 2, 3],
+      message: "priority must be in 1 for low or 2 for medium or 3 for high",
     },
-    default: "Low",
+    default: 3,
   },
   status: {
-    type: String,
+    type: Number,
     required: [true, "status is required"],
     enum: {
-      values: ["TODO", "IN progress", "Under Review", "Rework", "Completed"],
+      values: [1, 2, 3, 4, 5],
       message:
-        "status is must be TODO or IN progress or Under Review or Rework or Completed",
+        "status is must be 1 for TODO or 2 for IN progress or 3 for Under Review or 4 for Rework or 5 for Completed",
     },
-    default: "TODO",
+    default: 1,
   },
   startDate: {
     type: Date,

@@ -22,8 +22,6 @@ const sendToken = (user, statusCode, res, sends) => {
     secure: false,
   };
   if (process.env.NODE_ENV === "production") cookieOp.secure = true;
-  console.log(token);
-  console.log(cookieOp.secure);
   res.cookie("jwt", token, cookieOp);
   res.cookie(
     "jwtExpires",

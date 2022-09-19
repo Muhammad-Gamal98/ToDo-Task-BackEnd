@@ -40,7 +40,7 @@ const signUp = catchAsync(async (req, res, next) => {
   const user = await User.create(req.body);
   const verifyToken = user.createVerifyToken();
   await user.save({ validateBeforeSave: false });
-  const verifyURL = `${req.protocol}://${process.env.FRONT_URL}/api/v1/user/verifyaccount/${user._id}/${verifyToken}`;
+  const verifyURL = `${process.env.FRONT_URL}/api/v1/user/verifyaccount/${user._id}/${verifyToken}`;
   const message = `Welcome at Todo App, Please verify your account by (get) request to this URL:
    ${verifyURL}
    Thank you for Registrion.`;
@@ -95,16 +95,16 @@ const logIn = catchAsync(async (req, res, next) => {
     if (user.checkVerifyExpires()) {
       const verifyToken = user.createVerifyToken();
       await user.save({ validateBeforeSave: false });
-      const verifyURL = `${req.protocol}://${process.env.FRONT_URL}/api/v1/user/verifyaccount/${user._id}/${verifyToken}`;
+      const verifyURL = `${process.env.FRONT_URL}/api/v1/user/verifyaccount/${user._id}/${verifyToken}`;
       const message = `Welcome at Todo App, Please verify your account by (get) request to this URL:
       ${verifyURL}
       Thank you for Registrion.`;
       try {
         await new Email(user).sendVerificationEmail(message);
         return res.status(201).json({
-          status: "success",
+          status: "notVerified",
           message:
-            "Resend verification E-maial, Please verify Your Account via email",
+            "Resend verification E-mail, Please verify Your Account via email",
         });
       } catch (error) {
         console.log(error);
@@ -176,7 +176,7 @@ const forgotPassword = catchAsync(async (req, res, next) => {
     );
   const resetToken = user.createPasswordResetToken();
   await user.save({ validateBeforeSave: false });
-  const resetURL = `${req.protocol}://${process.env.FRONT_URL}/api/v1/user/resetpassword/${user._id}/${resetToken}`;
+  const resetURL = `${process.env.FRONT_URL}/api/v1/user/resetpassword/${user._id}/${resetToken}`;
   const emailText = `Forgot your password? Submit a PATCH request with your new password and passwordConfirm to: ${resetURL}.
   If you didn't forget your password, please ignore this email!`;
   try {

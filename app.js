@@ -8,7 +8,16 @@ const userRoutes = require("./Routes/userRoutes");
 const ErrorHandler = require("./Error/ErrorController");
 
 const app = express();
-app.use(cors({ credentials: true, origin: true }));
+// console.log(process.env.CLIENT);
+app.use(
+  cors({
+    credentials: true,
+    origin: [
+      "https://todo-task-frontend.herokuapp.com",
+      "http://localhost:3000",
+    ],
+  })
+);
 // app.options("http://localhost:3000", cors());
 app.use(cookieParser());
 app.use(express.json());

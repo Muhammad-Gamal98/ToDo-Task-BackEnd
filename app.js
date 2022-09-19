@@ -8,7 +8,7 @@ const userRoutes = require("./Routes/userRoutes");
 const ErrorHandler = require("./Error/ErrorController");
 
 const app = express();
-app.use(cors({ credentials: true, origin: "http://localhost:3000" }));
+app.use(cors({ credentials: true, origin: true }));
 // app.options("http://localhost:3000", cors());
 app.use(cookieParser());
 app.use(express.json());

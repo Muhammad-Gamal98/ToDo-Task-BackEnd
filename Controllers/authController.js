@@ -19,9 +19,13 @@ const sendToken = (user, statusCode, res, sends) => {
       Date.now() + process.env.COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
     ),
     httpOnly: false,
+    // sameSite: "none",
     secure: false,
   };
-  if (process.env.NODE_ENV === "production") cookieOp.secure = true;
+  if (process.env.NODE_ENV === "production") {
+    cookieOp.secure = true;
+    cookieOp.sameSite = "none";
+  }
   res.cookie("jwt", token, cookieOp);
   res.cookie(
     "jwtExpires",
@@ -36,9 +40,7 @@ const signUp = catchAsync(async (req, res, next) => {
   const user = await User.create(req.body);
   const verifyToken = user.createVerifyToken();
   await user.save({ validateBeforeSave: false });
-  const verifyURL = `${req.protocol}://${req.get(
-    "host"
-  )}/api/v1/user/verifyaccount/${user._id}/${verifyToken}`;
+  const verifyURL = `${req.protocol}://localhost:3000/api/v1/user/verifyaccount/${user._id}/${verifyToken}`;
   const message = `Welcome at Todo App, Please verify your account by (get) request to this URL:
    ${verifyURL}
    Thank you for Registrion.`;
@@ -85,8 +87,6 @@ const verifyAccount = catchAsync(async (req, res, next) => {
 });
 const logIn = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;
-  console.log(req.body);
-  console.log(email, password);
   if (!email || !password)
     return next(new AppError("Please Enter Email and Password", 400));
   const user = await User.findOne({ email }).select("+password");
@@ -95,9 +95,7 @@ const logIn = catchAsync(async (req, res, next) => {
     if (user.checkVerifyExpires()) {
       const verifyToken = user.createVerifyToken();
       await user.save({ validateBeforeSave: false });
-      const verifyURL = `${req.protocol}://${req.get(
-        "host"
-      )}/api/v1/user/verifyaccount/${user._id}/${verifyToken}`;
+      const verifyURL = `${req.protocol}://localhost:3000/api/v1/user/verifyaccount/${user._id}/${verifyToken}`;
       const message = `Welcome at Todo App, Please verify your account by (get) request to this URL:
       ${verifyURL}
       Thank you for Registrion.`;
@@ -129,7 +127,6 @@ const logIn = catchAsync(async (req, res, next) => {
 const protect = catchAsync(async (req, res, next) => {
   //1- getting the token and check of it's there
   let token;
-  console.log(req.cookies);
   if (
     req.headers.authorization &&
     req.headers.authorization.startsWith("Bearer")
@@ -179,10 +176,7 @@ const forgotPassword = catchAsync(async (req, res, next) => {
     );
   const resetToken = user.createPasswordResetToken();
   await user.save({ validateBeforeSave: false });
-  console.log(resetToken);
-  const resetURL = `${req.protocol}://${req.get(
-    "host"
-  )}/api/v1/user/resetpassword/${user._id}/${resetToken}`;
+  const resetURL = `${req.protocol}://localhost:3000/api/v1/user/resetpassword/${user._id}/${resetToken}`;
   const emailText = `Forgot your password? Submit a PATCH request with your new password and passwordConfirm to: ${resetURL}.
   If you didn't forget your password, please ignore this email!`;
   try {
@@ -191,7 +185,6 @@ const forgotPassword = catchAsync(async (req, res, next) => {
       .status(200)
       .json({ status: "success", message: "Reset Token Sent to email" });
   } catch (error) {
-    console.log(error);
     user.passwordResetToken = undefined;
     user.passwordResetTokenExpire = undefined;
     user.save({ validateBeforeSave: false });
@@ -208,7 +201,6 @@ const resetPassword = catchAsync(async (req, res, next) => {
     .createHash("sha256")
     .update(req.params.token)
     .digest("hex");
-  console.log(hashToken);
   const user = await User.findOne({
     _id: req.params.id,
     passwordResetToken: hashToken,
@@ -222,6 +214,22 @@ const resetPassword = catchAsync(async (req, res, next) => {
   await user.save();
   sendToken(user, 200, res, { status: "success", data: user });
 });
+const checkValidityResetPassword = catchAsync(async (req, res, next) => {
+  const hashToken = crypto
+    .createHash("sha256")
+    .update(req.params.token)
+    .digest("hex");
+  const user = await User.findOne({
+    _id: req.params.id,
+    passwordResetToken: hashToken,
+    passwordResetTokenExpire: { $gt: Date.now() },
+  });
+  if (!user) return next(new AppError("Token is Invalied or expired", 400));
+  res.status(200).json({
+    status: "success",
+    message: "token is Valied",
+  });
+});
 module.exports = {
   signUp,
   logIn,
@@ -229,4 +237,5 @@ module.exports = {
   forgotPassword,
   resetPassword,
   verifyAccount,
+  checkValidityResetPassword,
 };

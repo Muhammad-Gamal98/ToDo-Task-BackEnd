@@ -8,17 +8,28 @@ const userRoutes = require("./Routes/userRoutes");
 const ErrorHandler = require("./Error/ErrorController");
 
 const app = express();
+<<<<<<< HEAD
 app.use(
   cors({
     credentials: true,
     origin: ["http://192.168.1.11:3000", "http://localhost:3000"],
+=======
+// console.log(process.env.CLIENT);
+app.use(
+  cors({
+    credentials: true,
+    origin: [
+      "https://todo-task-frontend.herokuapp.com",
+      "http://localhost:3000",
+    ],
+>>>>>>> 5fd51b684c02ffb67bd4aaf40a13b2f945520b66
   })
 );
 // app.options("http://localhost:3000", cors());
-app.use(express.json());
 app.use(cookieParser());
+app.use(express.json());
 app.use((req, res, next) => {
-  console.log("Cookies: ", req.cookies);
+  // console.log("Cookies: ", req.cookies);
   next();
 });
 app.use(mongoSanitize());
@@ -28,7 +39,7 @@ app.use("/api/v1/task", taskRoutes);
 app.use("/api/v1/user", userRoutes);
 app.use((req, res, next) => {
   // console.log(req.headers);
-  console.log("Cookies: ", req.cookies);
+  // console.log("Cookies: ", req.cookies);
 
   next();
 });

@@ -22,7 +22,7 @@ app.use(
 app.use(cookieParser());
 app.use(express.json());
 app.use((req, res, next) => {
-  console.log("Cookies: ", req.cookies);
+  // console.log("Cookies: ", req.cookies);
   next();
 });
 app.use(mongoSanitize());
@@ -32,7 +32,7 @@ app.use("/api/v1/task", taskRoutes);
 app.use("/api/v1/user", userRoutes);
 app.use((req, res, next) => {
   // console.log(req.headers);
-  console.log("Cookies: ", req.cookies);
+  // console.log("Cookies: ", req.cookies);
 
   next();
 });

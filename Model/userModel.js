@@ -81,7 +81,7 @@ userSchema.methods.createPasswordResetToken = function () {
 userSchema.methods.checkVerifyExpires = function () {
   if (this.verifyTokenExpire) {
     verifyStamp = parseInt(+this.verifyTokenExpire, 10);
-    console.log(verifyStamp < Date.now());
+    // console.log(verifyStamp < Date.now());
     return Date.now() > verifyStamp;
   }
 };

@@ -24,7 +24,7 @@ const sendToken = (user, statusCode, res, sends) => {
   };
   if (process.env.NODE_ENV === "production") {
     cookieOp.secure = true;
-    sameSite = "none";
+    cookieOp.sameSite = "none";
   }
   res.cookie("jwt", token, cookieOp);
   res.cookie(
@@ -87,8 +87,6 @@ const verifyAccount = catchAsync(async (req, res, next) => {
 });
 const logIn = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;
-  console.log(req.body);
-  console.log(email, password);
   if (!email || !password)
     return next(new AppError("Please Enter Email and Password", 400));
   const user = await User.findOne({ email }).select("+password");
@@ -129,7 +127,6 @@ const logIn = catchAsync(async (req, res, next) => {
 const protect = catchAsync(async (req, res, next) => {
   //1- getting the token and check of it's there
   let token;
-  console.log(req.cookies);
   if (
     req.headers.authorization &&
     req.headers.authorization.startsWith("Bearer")
@@ -179,7 +176,6 @@ const forgotPassword = catchAsync(async (req, res, next) => {
     );
   const resetToken = user.createPasswordResetToken();
   await user.save({ validateBeforeSave: false });
-  console.log(resetToken);
   const resetURL = `${req.protocol}://localhost:3000/api/v1/user/resetpassword/${user._id}/${resetToken}`;
   const emailText = `Forgot your password? Submit a PATCH request with your new password and passwordConfirm to: ${resetURL}.
   If you didn't forget your password, please ignore this email!`;
@@ -189,7 +185,6 @@ const forgotPassword = catchAsync(async (req, res, next) => {
       .status(200)
       .json({ status: "success", message: "Reset Token Sent to email" });
   } catch (error) {
-    console.log(error);
     user.passwordResetToken = undefined;
     user.passwordResetTokenExpire = undefined;
     user.save({ validateBeforeSave: false });
@@ -206,7 +201,6 @@ const resetPassword = catchAsync(async (req, res, next) => {
     .createHash("sha256")
     .update(req.params.token)
     .digest("hex");
-  console.log(hashToken);
   const user = await User.findOne({
     _id: req.params.id,
     passwordResetToken: hashToken,

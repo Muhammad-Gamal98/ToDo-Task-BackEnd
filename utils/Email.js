@@ -7,11 +7,19 @@ class Email {
   }
   transporter() {
     return nodemailer.createTransport({
-      host: process.env.EMAIL_HOST,
-      port: process.env.EMAIL_PORT,
+      // host: process.env.EMAIL_HOST,
+      // port: process.env.EMAIL_PORT,
+      // auth: {
+      //   user: process.env.EMAIL_USERNAME,
+      //   pass: process.env.EMAIL_PASSWORD,
+      // },
+      host: process.env.HOST,
+      service: process.env.SERVICE,
+      port: Number(process.env.EMAIL_PORT),
+      secure: true,
       auth: {
-        user: process.env.EMAIL_USERNAME,
-        pass: process.env.EMAIL_PASSWORD,
+        user: process.env.USER,
+        pass: process.env.PASS,
       },
     });
   }

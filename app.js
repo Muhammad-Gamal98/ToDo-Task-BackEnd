@@ -15,6 +15,7 @@ app.use(
     origin: [
       "https://todo-task-frontend.herokuapp.com",
       "http://localhost:3000",
+      `${process.env.FRONT_URL}`,
     ],
   })
 );

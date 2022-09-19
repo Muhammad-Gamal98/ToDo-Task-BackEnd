@@ -8,12 +8,6 @@ const userRoutes = require("./Routes/userRoutes");
 const ErrorHandler = require("./Error/ErrorController");
 
 const app = express();
-<<<<<<< HEAD
-app.use(
-  cors({
-    credentials: true,
-    origin: ["http://192.168.1.11:3000", "http://localhost:3000"],
-=======
 // console.log(process.env.CLIENT);
 app.use(
   cors({
@@ -23,7 +17,6 @@ app.use(
       "http://localhost:3000",
       `${process.env.FRONT_URL}`,
     ],
->>>>>>> 5fd51b684c02ffb67bd4aaf40a13b2f945520b66
   })
 );
 // app.options("http://localhost:3000", cors());

@@ -19,12 +19,12 @@ const sendToken = (user, statusCode, res, sends) => {
       Date.now() + process.env.COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
     ),
     httpOnly: false,
-    // sameSite: "none",
+    sameSite: "lax",
     secure: false,
   };
   if (process.env.NODE_ENV === "production") {
     cookieOp.secure = true;
-    cookieOp.sameSite = "none";
+    // cookieOp.sameSite = "none";
   }
   res.cookie("jwt", token, cookieOp);
   res.cookie(

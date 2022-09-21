@@ -130,9 +130,6 @@ const logIn = catchAsync(async (req, res, next) => {
 const protect = catchAsync(async (req, res, next) => {
   //1- getting the token and check of it's there
   let token;
-  console.log("1", req.cookies);
-  console.log("2", req.headers);
-
   if (
     req.headers.authorization &&
     req.headers.authorization.startsWith("Bearer")
@@ -152,6 +149,7 @@ const protect = catchAsync(async (req, res, next) => {
     token,
     process.env.JWT_SECRET
   );
+  console.log(decoded);
   //3- check if user still exist
   const user = await User.findById(decoded.id);
   if (!user)

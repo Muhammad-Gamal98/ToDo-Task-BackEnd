@@ -84,7 +84,11 @@ const verifyAccount = catchAsync(async (req, res, next) => {
   user.verifyToken = undefined;
   user.verifyTokenExpire = undefined;
   await user.save({ validateBeforeSave: false });
-  sendToken(user, 200, res, { status: "success", data: user });
+  // sendToken(user, 200, res, { status: "success", data: user });
+  res.status(200).json({
+    status: "success",
+    message: "Successfull E-mail verification",
+  });
 });
 const logIn = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;
@@ -149,7 +153,6 @@ const protect = catchAsync(async (req, res, next) => {
     token,
     process.env.JWT_SECRET
   );
-  console.log(decoded);
   //3- check if user still exist
   const user = await User.findById(decoded.id);
   if (!user)
@@ -166,7 +169,6 @@ const protect = catchAsync(async (req, res, next) => {
     );
   }
   req.user = user;
-  res.locals.user = user;
   next();
 });
 const forgotPassword = catchAsync(async (req, res, next) => {
